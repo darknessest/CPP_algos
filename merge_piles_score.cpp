@@ -3,6 +3,7 @@
 #include <list>
 
 using namespace std;
+
 class custom_pair {
  protected:
     int l;
@@ -21,6 +22,9 @@ class custom_pair {
     }
     [[nodiscard]] list<int>::iterator getAddrR() const {
         return addrR;
+    }
+    void setAddrR(const list<int>::iterator &p1) {
+        custom_pair::addrR = p1;
     }
     explicit custom_pair(const int &a, const int &b, const list<int>::iterator &p1, const list<int>::iterator &p2) {
         l = a;
@@ -91,8 +95,7 @@ void mergeAndUpdate(list<int> &elements, priority_queue<PAIR> &heap, int &counte
     heap.pop();
 
     // check whether pair exists at all
-    cout << temp.getL() << " " << temp.getR() << " " << *temp.getAddrL()
-         << " " << *temp.getAddrR() << '\n';
+
     if (temp.getR() == *temp.getAddrR() && temp.getL() == *temp.getAddrL()) {
         list<int>::iterator newAddr, newAddrPrev, newAddrNext;
 
@@ -105,16 +108,17 @@ void mergeAndUpdate(list<int> &elements, priority_queue<PAIR> &heap, int &counte
         // deleting left, O(const)
         *temp.getAddrR() = -1;
         elements.erase(temp.getAddrR());
+        temp.setAddrR(elements.end());
 
         // inserting new pairs to the heap
         // O(log n)
         newAddr = temp.getAddrL();
         if (newAddr == elements.begin()) {
             newAddrPrev = --elements.end();                 //next iter
-            newAddrNext = ++temp.getAddrL();       //prev iter
+            newAddrNext = ++temp.getAddrL();                //prev iter
 
         } else if (newAddr == --elements.end()) {
-            newAddrPrev = --temp.getAddrL();       //next iter
+            newAddrPrev = --temp.getAddrL();                //next iter
             newAddrNext = elements.begin();                 //prev iter
         } else {
             newAddrPrev = --temp.getAddrL();
@@ -125,66 +129,64 @@ void mergeAndUpdate(list<int> &elements, priority_queue<PAIR> &heap, int &counte
     }
 }
 
-template<typename PAIR>
-void counting(list<int> &v, priority_queue<PAIR> &heap, int &counter) {
-    while (!v.empty()) {
-        print_list(v);
-        mergeAndUpdate(copy, heap, counter);
+void counting(list<int> v) {
+    priority_queue<min_pair> minHeap;
+
+    int minCounter = 0;
+
+    for (auto x1 = v.begin(), x2 = ++v.begin(); x2 != v.end(); ++x1, ++x2) {
+        // O(log n)
+        // can be improved with copy + reverse instead of separate insertions
+        if (x2 == --v.end())
+            minHeap.push(min_pair(*x2, *v.begin(), x2, v.begin()));
+
+        minHeap.push(min_pair(*x1, *x2, x1, x2));
+
     }
-    print_list(v);
+
+    while (!v.empty()) {
+//        print_list(v);
+        mergeAndUpdate(v, minHeap, minCounter);
+    }
+    cout << "Min: " << minCounter << '\n';
+
+}
+void counting_copy(list<int> v) {
+    priority_queue<max_pair> maxHeap;
+    int maxCounter = 0;
+    for (auto x1 = v.begin(), x2 = ++v.begin(); x2 != v.end(); ++x1, ++x2) {
+        // O(log n)
+        // can be improved with copy + reverse instead of separate insertions
+        if (x2 == --v.end())
+            maxHeap.push(max_pair(*x2, *v.begin(), x2, v.begin()));
+
+        maxHeap.push(max_pair(*x1, *x2, x1, x2));
+
+    }
+
+    while (!v.empty()) {
+//        print_list(copy);
+        mergeAndUpdate(v, maxHeap, maxCounter);
+    }
+
+    cout << "Max: " << maxCounter << '\n';
 }
 
 int main() {
 
-    priority_queue<min_pair> minHeap;
-    priority_queue<max_pair> maxHeap;
-
-    list<int> original, copy;
+    list<int> original;
     int n = 0, temp = 0;
-    int minCounter = 0, maxCounter = 0;
     cin >> n;
     // O(n)
     for (int i = 0; i < n; ++i) {
         cin >> temp;
         original.push_back(temp);
-        copy.push_back(temp);
     }
+    counting(original);
+    counting_copy(original);
 
-    for (auto x1 = original.begin(), x2 = ++original.begin(); x2 != original.end(); ++x1, ++x2) {
-        // O(log n)
-        // can be improved with copy + reverse instead of separate insertions
-        if (x2 == --original.end()) {
-            minHeap.push(min_pair(*x2, *original.begin(), x2, original.begin()));
-            maxHeap.push(max_pair(*x2, *original.begin(), x2, original.begin()));
-        }
-        {
-            minHeap.push(min_pair(*x1, *x2, x1, x2));
-            maxHeap.push(max_pair(*x1, *x2, x1, x2));
-        }
-    }
-
-//    print_list(original);
-//    cout << "min heap:\n";
-//    print_heap(minHeap);
-//    cout << "max heap:\n";
-//    print_heap(maxHeap);
-
-//    counting(original, maxHeap, maxCounter);
-//    counting(original, minHeap, minCounter);
-
-    while (!copy.empty()) {
-//        print_list(copy);
-        mergeAndUpdate(copy, minHeap, minCounter);
-    }
-
-    int i = 0;
-    while (!original.empty() ) {
-//        print_list(original);
-        mergeAndUpdate(original, maxHeap, maxCounter);
-    }
-    cout << minCounter << '\n';
-    cout << maxCounter << '\n';
 }
+
 /*
 9
 1

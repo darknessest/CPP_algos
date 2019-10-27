@@ -90,7 +90,7 @@ void mergeAndUpdate(list<int> &elements, priority_queue<PAIR> &heap, int &counte
     PAIR temp = heap.top();
     heap.pop();
 
-    // check whether pair exist at all
+    // check whether pair exists at all
     cout << temp.getL() << " " << temp.getR() << " " << *temp.getAddrL()
          << " " << *temp.getAddrR() << '\n';
     if (temp.getR() == *temp.getAddrR() && temp.getL() == *temp.getAddrL()) {
@@ -178,10 +178,9 @@ int main() {
     }
 
     int i = 0;
-    while (!original.empty() && i < 10) {
+    while (!original.empty() ) {
 //        print_list(original);
-        mergeAndUpdate(copy, maxHeap, maxCounter);
-        ++i;
+        mergeAndUpdate(original, maxHeap, maxCounter);
     }
     cout << minCounter << '\n';
     cout << maxCounter << '\n';
